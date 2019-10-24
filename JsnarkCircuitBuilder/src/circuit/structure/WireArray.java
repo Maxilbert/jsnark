@@ -333,6 +333,9 @@ public class WireArray {
 		Wire[] bits = new Wire[bitwidth * array.length];
 		int idx = 0;
 		for (int i = 0; i < array.length; i++) {
+			if(array[i] == null){
+				System.out.println(i + " mask is null!");
+			}
 			Wire[] tmp = array[i].getBitWires(bitwidth, desc).asArray();
 			for (int j = 0; j < bitwidth; j++) {
 				bits[idx++] = tmp[j];

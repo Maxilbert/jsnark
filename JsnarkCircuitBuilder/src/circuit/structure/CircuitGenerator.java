@@ -29,7 +29,8 @@ public abstract class CircuitGenerator {
 	private static ConcurrentHashMap<Long, CircuitGenerator> activeCircuitGenerators = new ConcurrentHashMap<>();
 	private static CircuitGenerator instance;
 
-	protected int currentWireId;
+	//change protect into public
+	public int currentWireId;
 	protected LinkedHashMap<Instruction, Instruction> evaluationQueue;
 
 	protected Wire zeroWire;
@@ -377,6 +378,12 @@ public abstract class CircuitGenerator {
 		generateSampleInput(circuitEvaluator);
 		circuitEvaluator.evaluate();
 	}
+	
+	public void skipEvalCircuit() {
+		circuitEvaluator = new CircuitEvaluator(this);
+		generateSampleInput(circuitEvaluator);
+		//circuitEvaluator.evaluate();
+	}
 
 	public void prepFiles() {
 		writeCircuitFile();
@@ -407,7 +414,105 @@ public abstract class CircuitGenerator {
 			e.printStackTrace();
 		}
 	}
+	
+	private int state = 0;
+	
+	public void runLibsnarkGenerator() {
 
+		try {
+			Process p;
+			p = Runtime.getRuntime()
+					.exec(new String[] { Config.GENERATOR_EXEC, circuitName + ".arith", circuitName + ".in" });
+			p.waitFor();
+			System.out.println(
+					"\n-----------------------------------RUNNING LIBSNARK -----------------------------------------");
+			String line;
+			BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			StringBuffer buf = new StringBuffer();
+			while ((line = input.readLine()) != null) {
+				buf.append(line + "\n");
+			}
+			input.close();
+			System.out.println(buf.toString());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		state = 1;
+	}
+	
+	public void runLibsnarkProver() {
+
+		while(state != 1){
+			System.out.println("Generator is working...");
+			try {
+				Thread.sleep(200L);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		try {
+			Process p;
+			p = Runtime.getRuntime()
+					.exec(new String[] { Config.PROVER_EXEC, circuitName + ".arith", circuitName + ".in" });
+			p.waitFor();
+			System.out.println(
+					"\n-----------------------------------RUNNING LIBSNARK -----------------------------------------");
+			String line;
+			BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			StringBuffer buf = new StringBuffer();
+			while ((line = input.readLine()) != null) {
+				buf.append(line + "\n");
+			}
+			input.close();
+			System.out.println(buf.toString());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		state = 2;
+		
+	}
+
+
+	public void runLibsnarkVerifier(){
+		this.runLibsnarkVerifier(this.state);
+	}
+	
+	public void runLibsnarkVerifier(int state) {
+		this.state = state;
+		while(state != 2){
+			System.out.println("Provr or Generator is working...");
+			try {
+				Thread.sleep(200L);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		try {
+			Process p;
+			p = Runtime.getRuntime()
+					.exec(new String[] { Config.VERIFIER_EXEC });
+			p.waitFor();
+			System.out.println(
+					"\n-----------------------------------RUNNING LIBSNARK -----------------------------------------");
+			String line;
+			BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			StringBuffer buf = new StringBuffer();
+			while ((line = input.readLine()) != null) {
+				buf.append(line + "\n");
+			}
+			input.close();
+			System.out.println(buf.toString());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		state = 0;
+		
+	}
+
+	
+	
 	public CircuitEvaluator getCircuitEvaluator() {
 		if (circuitEvaluator == null) {
 			throw new NullPointerException("evalCircuit() must be called before getCircuitEvaluator()");

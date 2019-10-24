@@ -52,6 +52,8 @@ public class Util {
 	}
 
 	public static Wire[] concat(Wire[] a1, Wire[] a2) {
+		if(a1 == null) return a2;
+		if(a2 == null) return a1;
 		Wire[] all = new Wire[a1.length + a2.length];
 		for (int i = 0; i < all.length; i++) {
 			all[i] = i < a1.length ? a1[i] : a2[i - a1.length];

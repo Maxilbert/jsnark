@@ -61,6 +61,7 @@ public class SHA256Gadget extends Gadget {
 
 	}
 
+	
 	protected void buildCircuit() {
 
 		// pad if needed
@@ -220,6 +221,9 @@ public class SHA256Gadget extends Gadget {
 	private void prepare() {
 
 		numBlocks = (int) Math.ceil(totalLengthInBytes * 1.0 / 64);
+		if(unpaddedInputs == null){
+			System.out.println("Input is null!");
+		}
 		Wire[] bits = new WireArray(unpaddedInputs).getBits(bitwidthPerInputElement).asArray();
 		int tailLength = totalLengthInBytes % 64;
 		if (paddingRequired) {

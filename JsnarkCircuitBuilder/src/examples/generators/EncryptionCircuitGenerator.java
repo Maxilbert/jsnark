@@ -84,8 +84,7 @@ public class EncryptionCircuitGenerator extends CircuitGenerator {
 		// Use h^s to generate a symmetric secret key and an initialization
 		// vector. Apply a Hash-based KDF.
 		Wire[] h_to_s = gadget.getH_to_s();
-		SHA256Gadget hashGadget = new SHA256Gadget(h_to_s, 256, 128, true,
-				false);
+		SHA256Gadget hashGadget = new SHA256Gadget(h_to_s, 256, 128, true, false);
 		Wire[] secret = hashGadget.getOutputWires();
 		Wire[] key = Arrays.copyOfRange(secret, 0, 128);
 		Wire[] iv = Arrays.copyOfRange(secret, 128, 256);

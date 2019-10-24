@@ -463,7 +463,7 @@ public class Wire {
 		}
 	}
 
-	protected void packIfNeeded(String... desc) {
+	public void packIfNeeded(String... desc) {
 		if (wireId == -1) {
 			pack();
 		}

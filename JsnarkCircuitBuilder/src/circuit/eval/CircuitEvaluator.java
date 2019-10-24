@@ -16,6 +16,7 @@ import java.util.Scanner;
 import circuit.operations.WireLabelInstruction;
 import circuit.operations.WireLabelInstruction.LabelType;
 import circuit.structure.CircuitGenerator;
+import circuit.structure.ParticipantRole;
 import circuit.structure.Wire;
 
 public class CircuitEvaluator {
@@ -23,15 +24,21 @@ public class CircuitEvaluator {
 	private CircuitGenerator circuitGenerator;
 	private BigInteger[] valueAssignment;
 
-	public CircuitEvaluator(CircuitGenerator circuitGenerator) {
+	private ParticipantRole role;
+	
+	public CircuitEvaluator(CircuitGenerator circuitGenerator, ParticipantRole role) {
 		this.circuitGenerator = circuitGenerator;
+		this.role = role;
 		valueAssignment = new BigInteger[circuitGenerator.getNumWires()];
 		valueAssignment[circuitGenerator.getOneWire().getWireId()] = BigInteger.ONE;
 	}
-
-	public void setWireValue(Wire w, BigInteger v) {
-		valueAssignment[w.getWireId()] = v;
+	
+	public CircuitEvaluator(CircuitGenerator circuitGenerator) {
+		this(circuitGenerator, ParticipantRole.Whatever);
 	}
+	
+
+
 	
 	public BigInteger getWireValue(Wire w) {
 		return valueAssignment[w.getWireId()];
@@ -45,10 +52,23 @@ public class CircuitEvaluator {
 		return values;
 	}
 
-	public void setWireValue(Wire wire, long v) {
-		setWireValue(wire, new BigInteger(v + ""));
+	
+	public void setWireValue (Wire wire, int v) {
+		setWireValue(wire, v & 0xffffffffL);
 	}
-
+	
+//	public void setWireValue(Wire wire, long v) {
+//		setWireValue(wire, new Long(v));
+//	}
+	
+	public void setWireValue (Wire wire, Long v) {
+		setWireValue(wire, new BigInteger(Long.toUnsignedString(v)));
+	}
+	
+	public void setWireValue(Wire w, BigInteger v) {
+		valueAssignment[w.getWireId()] = v;
+	}
+	
 	public void setWireValue(Wire[] wires, BigInteger[] v) {
 		for (int i = 0; i < v.length; i++) {
 			setWireValue(wires[i], v[i]);
@@ -78,19 +98,43 @@ public class CircuitEvaluator {
 		try {
 			LinkedHashMap<Instruction, Instruction> evalSequence = circuitGenerator.getEvaluationQueue();
 
-			PrintWriter printWriter = new PrintWriter(
-					circuitGenerator.getName() + ".in");
-			for (Instruction e : evalSequence.keySet()) {
-				if (e instanceof WireLabelInstruction
-						&& (((WireLabelInstruction) e).getType() == LabelType.input || ((WireLabelInstruction) e)
-								.getType() == LabelType.nizkinput)) {
-					int id = ((WireLabelInstruction) e).getWire().getWireId();
-					printWriter.println(id + " "
-							+ valueAssignment[id].toString(16));
+			if(role != ParticipantRole.Verifier){
+				PrintWriter printWriter = new PrintWriter(
+						circuitGenerator.getName() + ".in");
+				for (Instruction e : evalSequence.keySet()) {
+					if (e instanceof WireLabelInstruction
+							&& (((WireLabelInstruction) e).getType() == LabelType.input || ((WireLabelInstruction) e)
+									.getType() == LabelType.nizkinput)) {
+						int id = ((WireLabelInstruction) e).getWire().getWireId();
+						//if(valueAssignment[id]==null){
+						//	System.out.println(((WireLabelInstruction) e).toString());
+						//} //comment line 90 and decomment these three lines for debugging unassigned wire
+						printWriter.println(id + " "
+								+ valueAssignment[id].toString(16));
+					}
 				}
+				printWriter.close();
+			} else {
+				PrintWriter printWriter = new PrintWriter(
+						circuitGenerator.getName() + "-verifier.in");
+				for (Instruction e : evalSequence.keySet()) {
+					if (e instanceof WireLabelInstruction) {
+						if(((WireLabelInstruction) e).getType() == LabelType.input ){
+							int id = ((WireLabelInstruction) e).getWire().getWireId();
+							printWriter.println(id + " "
+								+ valueAssignment[id].toString(16));
+						}
+						if (((WireLabelInstruction) e).getType() == LabelType.nizkinput){
+							int id = ((WireLabelInstruction) e).getWire().getWireId();
+							printWriter.println(id + " "
+									+ 0);
+						}
+					}
+				}
+				printWriter.close();
 			}
-			printWriter.close();
 
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

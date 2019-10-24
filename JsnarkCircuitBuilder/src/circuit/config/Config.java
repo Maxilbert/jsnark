@@ -31,6 +31,9 @@ public class Config {
 	public static final BigInteger FIELD_PRIME = new BigInteger(properties.getProperty("FIELD_PRIME"));
 	public static final int LOG2_FIELD_PRIME = FIELD_PRIME.toString(2).length();
 	public static final String LIBSNARK_EXEC = properties.getProperty("PATH_TO_LIBSNARK_EXEC");
+	public static final String GENERATOR_EXEC = properties.getProperty("PATH_TO_GENERATOR_EXEC");
+	public static final String PROVER_EXEC = properties.getProperty("PATH_TO_PROVER_EXEC");
+	public static final String VERIFIER_EXEC = properties.getProperty("PATH_TO_VERIFIER_EXEC");
 	
 	public static boolean runningMultiGenerators = properties.getProperty("RUNNING_GENERATORS_IN_PARALLEL").equals("1");	
 	public static boolean hexOutputEnabled = properties.getProperty("PRINT_HEX").equals("1");
